@@ -1,0 +1,97 @@
+/* ============================================================
+   Print view — the same pages, laid flat as spreads.
+   Each .sheet is exactly two design pages wide, at the same
+   dimensions the on-screen book uses, so the PDF and the site
+   are the same artefact.
+   ============================================================ */
+
+.print-root {
+  background: #0a0a0a;
+  padding: 24px 0;
+}
+
+.sheet {
+  width: 1078px;
+  height: 749px;
+  display: flex;
+  margin: 0 auto 26px;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.half {
+  position: relative;
+  width: 539px;
+  height: 749px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.half.empty {
+  background: #0a0a0a;
+}
+
+/* the crease, so a flat spread still reads as a bound book */
+.sheet::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 78px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(20, 18, 12, 0.08) 34%,
+    rgba(20, 18, 12, 0.3) 50%,
+    rgba(20, 18, 12, 0.08) 66%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* nothing animates on a printed page */
+.half .stagger > *,
+.half .drawn-line {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.half .status-tag .dot {
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+.half .fill > img,
+.half .plate-frame img,
+.half .panel-plate-img img {
+  transform: none !important;
+  opacity: 1;
+}
+
+/* the interactive hit layer has no meaning in print */
+.half .plate-hit {
+  display: none !important;
+}
+
+/* the PDF gets grain baked into each sheet instead of a viewport overlay */
+.grain-overlay {
+  display: none !important;
+}
+
+.half::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 190px 190px;
+  opacity: 0.055;
+  mix-blend-mode: multiply;
+}

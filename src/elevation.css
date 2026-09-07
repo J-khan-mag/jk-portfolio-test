@@ -1,0 +1,1120 @@
+/* ============================================================
+   ELEVATION — the same work, read as an index instead of a book.
+   Vertical only. Everything moves on scroll.
+   ============================================================ */
+
+.elev {
+  min-height: 100dvh;
+  background: #0a0a0a;
+  display: grid;
+  grid-template-columns: clamp(230px, 21vw, 320px) 1fr;
+}
+
+/* ---------- reading progress ---------- */
+
+.elev-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  background: rgba(237, 237, 234, 0.08);
+}
+
+.elev-progress span {
+  display: block;
+  height: 100%;
+  background: var(--on-room);
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* ---------- cursor tag ---------- */
+
+.cursor-tag {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* the outer node follows the pointer every frame; the inner one does the
+   appearing, so the two transforms never fight and it cannot jump between
+   cards */
+.cursor-tag-in {
+  display: block;
+  margin: -15px 0 0 -27px;
+  padding: 0.55em 0.78em;
+  background: var(--on-room);
+  color: #0a0a0a;
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: center;
+  transition: opacity 240ms var(--ease), transform 420ms var(--ease);
+}
+
+.cursor-tag-in.on {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (hover: none) {
+  .cursor-tag {
+    display: none;
+  }
+}
+
+/* ---------- top bar ---------- */
+
+.elev-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(15px, 2.2vh, 25px) clamp(16px, 2.6vw, 40px);
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.96) 30%, rgba(10, 10, 10, 0));
+  pointer-events: none;
+}
+.elev-topbar > * {
+  pointer-events: auto;
+}
+
+/* ---------- navigator ---------- */
+
+.elev-nav {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  border-right: 1px solid rgba(237, 237, 234, 0.11);
+}
+
+.elev-nav-inner {
+  height: 100%;
+  padding: clamp(84px, 12vh, 118px) clamp(16px, 1.7vw, 28px) clamp(22px, 3vh, 34px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(16px, 2.6vh, 30px);
+  overflow-y: auto;
+}
+
+.elev-nav-title {
+  color: var(--on-room-3);
+  flex: 0 0 auto;
+}
+
+.nav-contact {
+  flex: 0 0 auto;
+  margin-top: auto;
+  color: var(--on-room-3);
+  text-decoration: none;
+  border-top: 1px solid rgba(237, 237, 234, 0.11);
+  padding-top: 16px;
+  transition: color 220ms ease;
+  word-break: break-all;
+}
+
+.nav-contact:hover {
+  color: var(--on-room);
+}
+
+/* ---------- main column ---------- */
+
+.elev-main {
+  min-width: 0;
+}
+
+.elev-hero {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.75fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 84px);
+  padding: 120px clamp(20px, 4vw, 80px) 90px;
+}
+
+.elev-hero-in {
+  max-width: 56ch;
+}
+
+/* ---------- hero plate ---------- */
+
+.hero-plate-wrap {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hero-plate {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-height: 68vh;
+  overflow: hidden;
+  background: var(--room-2);
+  clip-path: inset(100% 0 0 0);
+  will-change: transform, clip-path;
+}
+
+.live .hero-plate {
+  animation: plateWipe 1150ms var(--ease) 380ms forwards;
+}
+
+@keyframes plateWipe {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.hero-plate .fill > img {
+  transform: scale(1.06);
+}
+
+.hero-plate-cap {
+  color: var(--on-room-3);
+  opacity: 0;
+}
+
+.live .hero-plate-cap {
+  animation: fadeIn 700ms ease 1250ms forwards;
+}
+
+.elev-hero h1 {
+  font-size: clamp(31px, 4.5vw, 74px);
+  font-weight: 200;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  margin: 0 0 0.7em;
+  color: var(--on-room);
+}
+
+/* each line wipes up from behind its own mask */
+.lines span {
+  display: block;
+  overflow: hidden;
+}
+
+.lines span i {
+  display: block;
+  font-style: normal;
+  transform: translateY(105%);
+}
+
+.live .lines span i {
+  animation: lineUp 1000ms var(--ease) forwards;
+}
+
+.lines span:nth-child(1) i {
+  animation-delay: 120ms;
+}
+.lines span:nth-child(2) i {
+  animation-delay: 220ms;
+}
+.lines span:nth-child(3) i {
+  animation-delay: 320ms;
+}
+.lines span:nth-child(4) i {
+  animation-delay: 420ms;
+}
+
+@keyframes lineUp {
+  to {
+    transform: none;
+  }
+}
+
+.elev-hero p {
+  font-size: clamp(13px, 1.05vw, 17px);
+  line-height: 1.68;
+  color: var(--on-room-2);
+  max-width: 48ch;
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.elev-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(22px, 3.6vw, 58px);
+  margin-top: 3.2em;
+  border-top: 1px solid rgba(237, 237, 234, 0.14);
+  padding-top: 1.7em;
+}
+
+.elev-hero-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.elev-hero-meta .label {
+  color: var(--on-room-3);
+}
+
+.elev-hero-meta .num {
+  font-size: clamp(22px, 2.4vw, 42px);
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  color: var(--on-room);
+}
+
+.elev-scrollcue {
+  position: absolute;
+  left: clamp(20px, 4vw, 80px);
+  bottom: clamp(26px, 4vh, 46px);
+  color: var(--on-room-3);
+}
+
+.elev-scrollcue::after {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-top: 8px;
+  background: currentColor;
+  transform-origin: left center;
+  animation: cue 2.6s ease-in-out infinite;
+}
+
+@keyframes cue {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  55% {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+  56% {
+    transform: scaleX(1);
+    transform-origin: right center;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right center;
+  }
+}
+
+/* ---------- floors ---------- */
+
+.floor {
+  border-top: 1px solid rgba(237, 237, 234, 0.14);
+  padding: 0 clamp(20px, 4vw, 80px) clamp(42px, 6vh, 88px);
+}
+
+.floor-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(18px, 2.6vw, 46px);
+  align-items: start;
+  margin-bottom: clamp(26px, 3.6vh, 48px);
+  padding: clamp(54px, 8vh, 92px) 0 0;
+}
+
+.floor-key {
+  font-size: clamp(30px, 4vw, 70px);
+  font-weight: 200;
+  letter-spacing: -0.055em;
+  line-height: 0.86;
+  color: var(--on-room);
+}
+
+.floor-meta h2 {
+  font-size: clamp(17px, 1.7vw, 29px);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  margin: 0 0 9px;
+  color: var(--on-room);
+}
+
+.floor-meta p {
+  font-size: clamp(12px, 0.9vw, 15px);
+  line-height: 1.68;
+  color: var(--on-room-2);
+  max-width: 54ch;
+  margin: 13px 0 0;
+}
+
+/* ---------- the grid: vertical only ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: clamp(18px, 2.4vw, 40px) clamp(14px, 1.8vw, 30px);
+}
+
+.card2 {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  cursor: none;
+}
+
+@media (hover: none) {
+  .card2 {
+    cursor: pointer;
+  }
+}
+
+.card2-img {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--room-2);
+}
+
+.card2-img .fill > img {
+  transition: transform 1100ms var(--ease), opacity 600ms ease, filter 700ms ease;
+  filter: var(--img-tone) brightness(0.88);
+}
+
+.card2:hover .card2-img .fill > img {
+  transform: scale(1.04);
+  /* colour returns on hover — see the hover block in styles.css */
+  filter: none;
+}
+
+/* a hairline that wipes across the plate on hover */
+.card2-wipe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--on-room);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 620ms var(--ease);
+  z-index: 4;
+}
+
+.card2:hover .card2-wipe {
+  transform: scaleX(1);
+}
+
+.card-live {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 3;
+  background: #0a0a0a;
+  padding: 0.45em 0.65em;
+}
+
+.card2-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--on-room-3);
+  border-bottom: 1px solid rgba(237, 237, 234, 0.14);
+  padding-bottom: 9px;
+  transition: border-color 300ms ease;
+}
+
+.card2:hover .card2-meta {
+  border-color: rgba(237, 237, 234, 0.4);
+}
+
+.card2 h3 {
+  font-size: clamp(15px, 1.2vw, 22px);
+  font-weight: 300;
+  letter-spacing: -0.032em;
+  margin: 0;
+  color: var(--on-room);
+}
+
+.card2 .loc {
+  font-size: 11.5px;
+  color: var(--on-room-3);
+  letter-spacing: -0.005em;
+}
+
+.floor-empty {
+  color: var(--on-room-3);
+  padding: clamp(20px, 3vh, 34px) 0;
+  border-top: 1px solid rgba(237, 237, 234, 0.11);
+  border-bottom: 1px solid rgba(237, 237, 234, 0.11);
+}
+
+/* ---------- reveal on arrival ---------- */
+
+.rise {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 760ms var(--ease), transform 760ms var(--ease);
+}
+
+.rise.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- footer ---------- */
+
+.elev-foot {
+  border-top: 1px solid rgba(237, 237, 234, 0.14);
+  padding: clamp(56px, 9vh, 120px) clamp(20px, 4vw, 80px) clamp(60px, 10vh, 130px);
+  text-align: center;
+}
+
+.elev-foot .credit {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.elev-foot h2 {
+  font-size: clamp(26px, 3.2vw, 58px);
+  font-weight: 200;
+  letter-spacing: -0.045em;
+  margin: 15px 0 10px;
+  color: var(--on-room);
+}
+
+.elev-foot p {
+  font-size: clamp(12px, 0.95vw, 16px);
+  color: var(--on-room-2);
+  margin: 0 0 1.7em;
+}
+
+.elev-foot a {
+  display: inline-block;
+  font-size: clamp(16px, 1.5vw, 26px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--on-room);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.34);
+  transition: border-color 220ms ease;
+}
+.elev-foot a:hover {
+  border-color: var(--on-room);
+}
+
+/* ============================================================
+   PROJECT PANEL
+   ============================================================ */
+
+.panel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(6, 6, 6, 0.78);
+  animation: fadeIn 280ms ease both;
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 95;
+  width: min(700px, 95vw);
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  animation: panelIn 480ms var(--ease) both;
+  box-shadow: -34px 0 90px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes panelIn {
+  from {
+    transform: translateX(46px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(15px, 2.3vh, 24px) clamp(20px, 3vw, 48px);
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-3);
+  flex: 0 0 auto;
+}
+
+.panel-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-nav > button:not(.panel-close) {
+  width: 34px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+.panel-nav > button:not(.panel-close):hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.panel-close {
+  margin-left: 8px;
+  color: var(--ink-2);
+}
+
+.panel-body {
+  overflow-y: auto;
+  padding: clamp(26px, 4vh, 54px) clamp(20px, 3vw, 48px) clamp(50px, 8vh, 100px);
+}
+
+.panel-intro {
+  animation: introIn 520ms var(--ease) both;
+}
+
+@keyframes introIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel-title {
+  font-size: clamp(26px, 3vw, 50px);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 0;
+}
+
+.panel-loc {
+  font-size: clamp(12px, 1vw, 16px);
+  color: var(--ink-3);
+  margin-top: 0.9em;
+}
+
+.panel-text {
+  font-size: clamp(13px, 1vw, 16px);
+  line-height: 1.72;
+  color: var(--ink-2);
+  margin: 1.9em 0 0;
+  max-width: 54ch;
+}
+
+.panel-plates {
+  margin-top: clamp(34px, 5vh, 64px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(20px, 3vh, 42px);
+}
+
+.panel-plate {
+  margin: 0;
+  animation: introIn 620ms var(--ease) both;
+}
+
+.panel-plate button {
+  position: relative;
+  display: block;
+  width: 100%;
+  background: var(--paper-2);
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.panel-plate-img {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 140px;
+}
+
+.panel-plate-img img {
+  max-width: 100%;
+  max-height: 74vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: opacity 600ms ease, transform 900ms var(--ease), filter 620ms var(--ease);
+  filter: var(--img-tone);
+}
+
+.panel-plate button:hover img {
+  transform: scale(1.02);
+}
+
+.panel-plate figcaption {
+  color: var(--ink-3);
+  margin-top: 11px;
+}
+
+/* ============================================================
+   SMALL SCREENS
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .elev {
+    grid-template-columns: 1fr;
+  }
+
+  .elev-nav {
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid rgba(237, 237, 234, 0.14);
+    background: rgba(10, 10, 10, 0.96);
+    backdrop-filter: blur(10px);
+    z-index: 45;
+  }
+
+  .elev-nav-inner {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    padding: 54px 14px 0;
+    overflow: hidden;
+  }
+
+  .elev-nav-title,
+  .nav-contact {
+    display: none;
+  }
+
+  .elev-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 34px 20px 74px;
+    gap: 30px;
+  }
+
+  .hero-plate {
+    aspect-ratio: 4 / 3;
+    max-height: none;
+  }
+
+  .elev-scrollcue {
+    left: 20px;
+    bottom: 24px;
+  }
+
+  .floor {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .floor-head {
+    padding: 34px 0 0;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    width: 100vw;
+  }
+}
+
+/* ============================================================
+   BUILDING DIAGRAM — where you are, drawn as a building
+   ============================================================ */
+
+.bld {
+  position: relative;
+  flex: 0 0 auto;
+  padding-left: 16px;
+}
+
+.bld-stack {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(237, 237, 234, 0.22);
+  border-bottom: 0;
+}
+
+.bld-floor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: clamp(11px, 1.7vh, 17px) clamp(10px, 1vw, 14px);
+  border-bottom: 1px solid rgba(237, 237, 234, 0.22);
+  transition: background 320ms var(--ease);
+  text-align: left;
+}
+
+.bld-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.bld-name {
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(11.5px, 0.95vw, 16px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--on-room-2);
+  transition: color 280ms var(--ease), transform 420ms var(--ease);
+}
+
+.bld-floor:hover .bld-name,
+.bld-floor.on .bld-name {
+  color: var(--on-room);
+}
+
+.bld-floor:hover .bld-name {
+  transform: translateX(3px);
+}
+
+.bld-count {
+  font-size: clamp(8px, 0.6vw, 10.5px);
+  letter-spacing: 0.12em;
+  color: var(--on-room-3);
+  transition: color 280ms ease;
+}
+
+.bld-floor.on .bld-count {
+  color: var(--on-room-2);
+}
+
+/* the storey you are on names what it holds */
+.bld-sub {
+  display: block;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  font-size: clamp(7.5px, 0.56vw, 10px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-room-3);
+  transition: max-height 420ms var(--ease), opacity 320ms ease, margin 420ms var(--ease);
+  margin: -8px 0 0;
+}
+
+.bld-floor.on .bld-sub {
+  max-height: 3em;
+  opacity: 1;
+  margin: -2px 0 0;
+}
+
+.bld-floor.on {
+  background: rgba(237, 237, 234, 0.07);
+}
+
+.bld-tag {
+  flex: 0 0 auto;
+  width: 2.2em;
+  font-size: clamp(9px, 0.72vw, 12px);
+  color: var(--on-room-3);
+  transition: color 300ms ease;
+}
+
+.bld-floor.on .bld-tag {
+  color: var(--on-room);
+}
+
+.bld-bay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.win {
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgba(237, 237, 234, 0.32);
+  transition: background 420ms var(--ease), border-color 420ms var(--ease),
+    box-shadow 420ms var(--ease);
+}
+
+.win.lit {
+  background: #f4efdf;
+  border-color: #f4efdf;
+  box-shadow: 0 0 7px rgba(244, 239, 223, 0.55);
+}
+
+.bld-empty {
+  display: block;
+  width: 100%;
+  height: 9px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(237, 237, 234, 0.26) 0 1px,
+    transparent 1px 6px
+  );
+}
+
+/* the lift car riding the left face */
+.bld-car {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  background: var(--on-room);
+  box-shadow: 0 0 12px rgba(237, 237, 234, 0.35);
+  transition: transform 620ms var(--ease), height 620ms var(--ease);
+  z-index: 2;
+}
+
+.bld-ground {
+  display: block;
+  margin-left: 15px;
+  height: 9px;
+  border-top: 1.5px solid rgba(237, 237, 234, 0.5);
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(237, 237, 234, 0.3) 0 1px,
+    transparent 1px 6px
+  );
+}
+
+/* the mobile fill, hidden while there is room for real windows */
+.bld-track {
+  display: none;
+  height: 2px;
+  background: rgba(237, 237, 234, 0.16);
+  overflow: hidden;
+}
+
+.bld-track i {
+  display: block;
+  height: 100%;
+  background: var(--on-room);
+  transform-origin: left center;
+  transition: transform 320ms var(--ease);
+}
+
+@media (max-width: 900px) {
+  .bld {
+    padding-left: 0;
+    width: 100%;
+  }
+
+  .bld-car,
+  .bld-ground,
+  .bld-bay,
+  .bld-sub,
+  .bld-count {
+    display: none;
+  }
+
+  .bld-stack {
+    flex-direction: row;
+    border: 1px solid rgba(237, 237, 234, 0.2);
+  }
+
+  .bld-floor {
+    flex: 1;
+    min-width: 0;
+    gap: 7px;
+    /* 44px+ tap targets on touch screens */
+    padding: 12px 7px 13px;
+    border-bottom: 0;
+    border-right: 1px solid rgba(237, 237, 234, 0.2);
+  }
+
+  .bld-floor:last-child {
+    border-right: 0;
+  }
+
+  .bld-head {
+    gap: 6px;
+  }
+
+  .bld-name {
+    display: none;
+  }
+
+  .bld-tag {
+    width: auto;
+    font-size: 11px;
+  }
+
+  .bld-floor.on .bld-tag {
+    color: var(--on-room);
+  }
+
+  .bld-track {
+    display: block;
+  }
+}
+
+/* plates assemble out of small boxes as they arrive */
+.mosaic {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: block;
+}
+
+/* ============================================================
+   ELEVATION ANNOTATION
+   Level datum markers down the left face, and a drawing title
+   underneath — the way an elevation sheet is labelled.
+   ============================================================ */
+
+.bld {
+  padding-left: 30px;
+}
+
+/* the datum marker: a tick on the storey line, code set beside it */
+.bld-datum {
+  position: absolute;
+  left: -30px;
+  bottom: -1px;
+  width: 26px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.bld-datum-tick {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(237, 237, 234, 0.28);
+  transition: background 300ms ease;
+}
+
+.bld-datum-tick::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -2.5px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(237, 237, 234, 0.4);
+  background: #0a0a0a;
+  transform: rotate(45deg);
+  transition: border-color 300ms ease, background 300ms ease;
+}
+
+.bld-floor.on .bld-datum-tick {
+  background: rgba(237, 237, 234, 0.75);
+}
+
+.bld-floor.on .bld-datum-tick::after {
+  border-color: var(--on-room);
+  background: var(--on-room);
+}
+
+/* the drawing title */
+.bld-title {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: clamp(14px, 2.2vh, 22px) 0 0 30px;
+}
+
+.bld-title-name {
+  font-size: clamp(10px, 0.8vw, 13px);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--on-room);
+}
+
+.bld-title-rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: rgba(237, 237, 234, 0.45);
+}
+
+.bld-title-scale {
+  font-size: clamp(8px, 0.6vw, 10.5px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-room-3);
+}
+
+@media (max-width: 900px) {
+  .bld {
+    padding-left: 0;
+  }
+
+  .bld-datum,
+  .bld-title {
+    display: none;
+  }
+}
+
+/* the window belonging to the card under the pointer — lit in orange,
+   the one warm note in the drawing */
+.win.hot {
+  background: #ff8a3d;
+  border-color: #ffa05e;
+  box-shadow: 0 0 5px rgba(255, 138, 61, 0.95), 0 0 16px rgba(255, 138, 61, 0.7),
+    0 0 34px rgba(255, 122, 40, 0.45);
+  transform: scale(1.35);
+  transition: background 160ms var(--ease), border-color 160ms var(--ease),
+    box-shadow 220ms var(--ease), transform 220ms var(--ease);
+}
+
+/* the storey it sits on brightens with it */
+.bld-floor:has(.win.hot) {
+  background: rgba(237, 237, 234, 0.09);
+}
+
+/* email and LinkedIn, side by side under the contact heading */
+.foot-links {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: clamp(18px, 3vw, 44px);
+}
+
+.foot-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(15px, 1.35vw, 24px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--on-room);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.34);
+  padding-bottom: 3px;
+  transition: border-color 220ms ease;
+}
+
+.foot-links a:hover {
+  border-color: var(--on-room);
+}
+
+/* the imagery disclaimer stays a whisper — the footer paragraph rules
+   were overriding .credit and inflating it */
+.elev-foot p.credit {
+  font-size: clamp(8.5px, 0.6vw, 10.5px);
+  line-height: 1.6;
+  color: rgba(237, 237, 234, 0.26);
+  max-width: 64ch;
+  margin-left: auto;
+  margin-right: auto;
+}

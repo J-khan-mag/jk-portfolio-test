@@ -1,0 +1,640 @@
+/* ============================================================
+   SECTION NODS
+   A hairline datum down the content column with a small mark at
+   each floor, and a single ground line above B1. No hatching —
+   just enough to say the levels are stacked.
+   ============================================================ */
+
+.floor {
+  position: relative;
+}
+
+.floor::before {
+  content: '';
+  position: absolute;
+  left: clamp(20px, 4vw, 80px);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(237, 237, 234, 0.07);
+  pointer-events: none;
+}
+
+/* a small level mark sitting on the datum, like a section tag */
+.floor::after {
+  content: '';
+  position: absolute;
+  left: clamp(16px, 4vw, 76px);
+  top: clamp(54px, 8vh, 92px);
+  width: 9px;
+  height: 1px;
+  background: rgba(237, 237, 234, 0.34);
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .floor::before,
+  .floor::after {
+    display: none;
+  }
+}
+
+/* ---------- the ground line ---------- */
+
+.ground-line {
+  position: relative;
+  margin: 0 clamp(20px, 4vw, 80px);
+  height: 0;
+  border-top: 1px solid rgba(237, 237, 234, 0.5);
+}
+
+.ground-line span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 1px;
+  background: rgba(237, 237, 234, 0.16);
+}
+
+/* ============================================================
+   B1
+   ============================================================ */
+
+.b1 {
+  border-top: 1px solid rgba(237, 237, 234, 0.14);
+  padding-top: clamp(40px, 6vh, 78px);
+}
+
+.b1-hatch {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: clamp(16px, 2.6vw, 40px);
+  width: 100%;
+  text-align: left;
+  padding: clamp(22px, 3.4vh, 40px) clamp(20px, 4vw, 80px);
+  color: var(--on-room-3);
+  transition: background 400ms var(--ease), color 300ms ease;
+}
+
+.b1-hatch:hover {
+  background: rgba(237, 237, 234, 0.035);
+  color: var(--on-room-2);
+}
+
+.b1-hatch-key {
+  font-size: clamp(24px, 3vw, 52px);
+  font-weight: 200;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  color: rgba(237, 237, 234, 0.32);
+  transition: color 320ms ease;
+}
+
+.b1-hatch:hover .b1-hatch-key,
+.b1.open .b1-hatch-key {
+  color: var(--on-room);
+}
+
+.b1-hatch-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.b1-hatch-sub {
+  font-size: clamp(11px, 0.88vw, 14px);
+  color: var(--on-room-3);
+  letter-spacing: -0.005em;
+}
+
+.b1-hatch-mark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(237, 237, 234, 0.22);
+  transition: transform 460ms var(--ease), background 300ms ease, color 300ms ease;
+}
+
+.b1-hatch:hover .b1-hatch-mark {
+  background: var(--on-room);
+  color: #0a0a0a;
+}
+
+.b1-hatch-mark.up {
+  transform: rotate(180deg);
+}
+
+/* ---------- the level itself ---------- */
+
+.b1-body {
+  padding: clamp(30px, 5vh, 70px) clamp(20px, 4vw, 80px) clamp(40px, 6vh, 90px);
+  animation: b1In 900ms var(--ease) both;
+  /* below ground reads a shade darker than the floors above */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.22));
+}
+
+@keyframes b1In {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.b1-head {
+  margin-bottom: clamp(34px, 5vh, 64px);
+}
+
+.b1-head .label {
+  color: var(--on-room-3);
+}
+
+.b1-head h2 {
+  font-size: clamp(24px, 3.2vw, 56px);
+  font-weight: 200;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  margin: 16px 0 0;
+  color: var(--on-room);
+}
+
+/* ---------- the asides ---------- */
+
+.b1-asides {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 1.9vw, 34px);
+  margin-bottom: clamp(40px, 6vh, 80px);
+}
+
+@media (max-width: 1180px) {
+  .b1-asides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(20px, 2.6vw, 44px);
+  }
+}
+
+@media (max-width: 620px) {
+  .b1-asides {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aside {
+  border-top: 1px solid rgba(237, 237, 234, 0.2);
+  padding-top: clamp(16px, 2.2vh, 24px);
+}
+
+.aside-meta {
+  color: var(--on-room-3);
+}
+
+.aside h3 {
+  font-size: clamp(16px, 1.35vw, 24px);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  margin: 12px 0 14px;
+  color: var(--on-room);
+}
+
+.aside p {
+  font-size: clamp(11.5px, 0.82vw, 14px);
+  line-height: 1.7;
+  color: var(--on-room-2);
+  margin: 0;
+  max-width: 42ch;
+}
+
+.aside a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  font-size: clamp(11px, 0.85vw, 14px);
+  color: var(--on-room);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.3);
+  padding-bottom: 3px;
+  transition: border-color 240ms ease;
+}
+
+.aside a:hover {
+  border-color: var(--on-room);
+}
+
+.aside a svg {
+  transition: transform 340ms var(--ease);
+}
+
+.aside a:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* ---------- the basement storey in the drawing ---------- */
+
+.bld-floor.below {
+  border-top: 1px solid rgba(237, 237, 234, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.bld-floor.below .bld-tag {
+  color: var(--on-room-2);
+}
+
+/* ============================================================
+   MOVING PLATES
+   ============================================================ */
+
+.vplate {
+  margin: 0;
+}
+
+.vplate-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--paper-2);
+  isolation: isolate;
+}
+
+.vplate-vid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  /* the same grade as every still on the site */
+  filter: var(--img-tone);
+  z-index: 1;
+}
+
+.vplate-vid.ready {
+  opacity: 1;
+}
+
+/* grain, over the moving image as well */
+.vplate-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: var(--grain-fine);
+  background-size: 150px 150px;
+  mix-blend-mode: overlay;
+}
+
+.vplate-cap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink-3);
+  margin-top: 11px;
+}
+
+.vplate-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--live);
+  animation: blink 2.1s ease-in-out infinite;
+}
+
+/* a card that has a film behind it */
+.card2-moving {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #0a0a0a;
+  color: var(--on-room-2);
+  padding: 0.45em 0.65em;
+}
+
+.card2-moving-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--on-room);
+  animation: blink 2.1s ease-in-out infinite;
+}
+
+@media (max-width: 900px) {
+  .b1-hatch {
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+  }
+  .b1-hatch-mark {
+    display: none;
+  }
+  .route li {
+    grid-template-columns: 2.6em 1fr;
+  }
+}
+
+/* ============================================================
+   THE RECORD
+   ============================================================ */
+
+.practice {
+  border-top: 1px solid rgba(237, 237, 234, 0.14);
+  padding: clamp(48px, 7vh, 100px) clamp(20px, 4vw, 80px) clamp(44px, 6vh, 90px);
+}
+
+.practice-head {
+  max-width: 62ch;
+  margin-bottom: clamp(34px, 5vh, 62px);
+}
+
+.practice-head h2 {
+  font-size: clamp(24px, 3vw, 52px);
+  font-weight: 200;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  margin: 15px 0 18px;
+  color: var(--on-room);
+}
+
+.practice-head p {
+  font-size: clamp(12.5px, 0.95vw, 16px);
+  line-height: 1.72;
+  color: var(--on-room-2);
+  margin: 0;
+  max-width: 56ch;
+}
+
+.practice-turns {
+  border-top: 1px solid rgba(237, 237, 234, 0.2);
+  padding-top: clamp(16px, 2.2vh, 24px);
+  margin-bottom: clamp(38px, 5.5vh, 74px);
+}
+
+.practice-turns dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: clamp(18px, 2.4vw, 42px);
+  margin: clamp(18px, 2.6vh, 30px) 0 0;
+}
+
+.practice-turns dt {
+  font-size: clamp(12px, 0.95vw, 16px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--on-room);
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.14);
+}
+
+.practice-turns dd {
+  margin: 11px 0 0;
+  font-size: clamp(11.5px, 0.85vw, 14px);
+  line-height: 1.68;
+  color: var(--on-room-3);
+}
+
+/* ---------- the spec sheet ---------- */
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(26px, 3vw, 56px) clamp(22px, 2.8vw, 50px);
+}
+
+@media (max-width: 1100px) {
+  .sheet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .sheet-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sheet-h {
+  color: var(--on-room-3);
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.2);
+  display: block;
+}
+
+.sheet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sheet-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: clamp(9px, 1.4vh, 15px) 0;
+  border-bottom: 1px solid rgba(237, 237, 234, 0.1);
+}
+
+.sp-1 {
+  font-size: clamp(12px, 0.92vw, 15px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--on-room);
+}
+
+.sp-2 {
+  font-size: clamp(10.5px, 0.78vw, 13px);
+  color: var(--on-room-2);
+}
+
+.sp-3 {
+  font-size: clamp(8px, 0.6vw, 10.5px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-room-3);
+}
+
+.sheet-tags {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 8px;
+}
+
+.sheet-tags li {
+  font-size: clamp(10px, 0.76vw, 13px);
+  color: var(--on-room-2);
+  border: 1px solid rgba(237, 237, 234, 0.18);
+  padding: 0.42em 0.72em;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- entries & awards, under level G ---------- */
+
+.awards {
+  margin-top: clamp(30px, 4.5vh, 60px);
+  max-width: 70ch;
+}
+
+.awards .sheet-list {
+  margin-top: 14px;
+  border-top: 1px solid rgba(237, 237, 234, 0.2);
+}
+
+.awards .sheet-list li {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* ---------- basement tail ---------- */
+
+.b1-tail {
+  border-top: 1px solid rgba(237, 237, 234, 0.2);
+  padding-top: clamp(18px, 2.6vh, 28px);
+  text-align: center;
+}
+
+.b1-tail .b1-tags {
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ============================================================
+   THE TIMELINE
+   One rail, four stops. Nothing decorative.
+   ============================================================ */
+
+.tl {
+  position: relative;
+  margin: 0 0 clamp(44px, 6.5vh, 88px);
+}
+
+.tl-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 1px;
+  background: rgba(237, 237, 234, 0.18);
+}
+
+.tl-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 2vw, 38px);
+}
+
+.tl-stops li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 24px;
+}
+
+.tl-node {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 9px;
+  height: 9px;
+  background: #0a0a0a;
+  border: 1px solid rgba(237, 237, 234, 0.5);
+}
+
+.tl-stops li:last-child .tl-node {
+  background: var(--on-room);
+  border-color: var(--on-room);
+}
+
+.tl-year {
+  font-size: clamp(8px, 0.6vw, 10.5px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--on-room-3);
+}
+
+.tl-place {
+  font-size: clamp(16px, 1.5vw, 28px);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--on-room);
+}
+
+.tl-region {
+  font-size: clamp(10.5px, 0.78vw, 13px);
+  color: var(--on-room-3);
+}
+
+.tl-note {
+  font-size: clamp(11.5px, 0.85vw, 14px);
+  line-height: 1.68;
+  color: var(--on-room-2);
+  margin-top: 5px;
+  max-width: 34ch;
+}
+
+/* the aside plate */
+.aside-plate {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--room-2);
+  margin-bottom: clamp(14px, 2vh, 22px);
+  isolation: isolate;
+}
+
+@media (max-width: 900px) {
+  .tl-stops {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .tl-rail {
+    left: 4px;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    height: auto;
+  }
+
+  .tl-stops li {
+    padding: 0 0 clamp(20px, 3vh, 30px) 26px;
+  }
+
+  .tl-node {
+    top: 5px;
+  }
+
+  .tl-note {
+    max-width: none;
+  }
+}
+
+/* the record, dressed as the ground floor */
+.practice-floorhead {
+  padding-top: 0;
+  margin-bottom: clamp(30px, 4.4vh, 56px);
+}
+
+.practice-floorhead .floor-meta p {
+  max-width: 58ch;
+}

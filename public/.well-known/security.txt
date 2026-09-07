@@ -1,0 +1,8 @@
+Contact: mailto:jehangirk94@gmail.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://jahangir-khan-portfolio.vercel.app/.well-known/security.txt
+
+# This is a personal architecture portfolio: a static site with no accounts,
+# no forms, no database and no user data. If you find something anyway,
+# the address above reaches me directly.

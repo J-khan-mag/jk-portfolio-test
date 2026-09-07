@@ -1,0 +1,344 @@
+/* ============================================================
+   INTRO — the curtain
+   ============================================================ */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 6vh, 76px) clamp(20px, 6vw, 110px);
+  transform: translateY(0);
+  transition: transform 1150ms cubic-bezier(0.72, 0, 0.16, 1);
+  will-change: transform;
+}
+
+.intro.leaving {
+  transform: translateY(-101%);
+}
+
+/* ---------- the scene behind the curtain ---------- */
+
+.intro-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.intro-scene-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* the same grade as every plate on the site, held darker so type carries */
+  filter: grayscale(1) contrast(1.08) brightness(0.62);
+}
+
+/* the vignette: edges fall to black, and a broad wash keeps the centre quiet */
+.intro-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 42%, rgba(10, 10, 10, 0) 0%, rgba(10, 10, 10, 0.55) 58%, rgba(10, 10, 10, 0.94) 100%),
+    linear-gradient(100deg, rgba(10, 10, 10, 0.82) 0%, rgba(10, 10, 10, 0.3) 46%, rgba(10, 10, 10, 0.05) 70%),
+    linear-gradient(to top, rgba(10, 10, 10, 0.9), rgba(10, 10, 10, 0.25) 40%, rgba(10, 10, 10, 0.45) 100%);
+}
+
+/* grain baked into the curtain itself: plain opacity, no blend mode, so it
+   composites once and rides the transform for free */
+.intro::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 200px 200px;
+  opacity: 0.5;
+}
+
+.intro-inner,
+.intro-foot {
+  position: relative;
+  z-index: 2;
+}
+
+.intro.leaving .intro-inner,
+.intro.leaving .intro-foot {
+  opacity: 0;
+  transform: translateY(-26px);
+  transition: opacity 460ms ease, transform 900ms cubic-bezier(0.72, 0, 0.16, 1);
+}
+
+/* hairlines that draw across the sheet */
+.intro-rule {
+  position: absolute;
+  left: clamp(20px, 6vw, 110px);
+  right: clamp(20px, 6vw, 110px);
+  height: 1px;
+  background: rgba(237, 237, 234, 0.24);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: introRule 1400ms cubic-bezier(0.16, 0.84, 0.24, 1) 120ms forwards;
+}
+
+.intro-rule-t {
+  top: clamp(28px, 6vh, 76px);
+}
+
+.intro-rule-b {
+  bottom: clamp(28px, 6vh, 76px);
+  transform-origin: right center;
+  animation-delay: 260ms;
+}
+
+@keyframes introRule {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.intro-inner {
+  max-width: 62ch;
+}
+
+.intro-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--on-room-3);
+  opacity: 0;
+  animation: introFade 900ms var(--ease) 420ms forwards;
+}
+
+.intro-eyebrow .line {
+  width: clamp(26px, 5vw, 66px);
+  height: 1px;
+  background: currentColor;
+}
+
+@keyframes introFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.intro-name {
+  margin: clamp(16px, 3vh, 32px) 0 0;
+  font-size: clamp(46px, 9vw, 148px);
+  font-weight: 200;
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  color: var(--on-room);
+}
+
+.intro-name span {
+  display: block;
+  overflow: hidden;
+}
+
+.intro-name span i {
+  display: block;
+  font-style: normal;
+  transform: translateY(106%);
+  animation: introUp 1250ms cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+}
+
+.intro-name span:nth-child(1) i {
+  animation-delay: 300ms;
+}
+
+.intro-name span:nth-child(2) i {
+  animation-delay: 420ms;
+}
+
+@keyframes introUp {
+  to {
+    transform: none;
+  }
+}
+
+.intro-role {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(18px, 3vh, 34px);
+  color: var(--on-room-2);
+  opacity: 0;
+  animation: introFade 900ms var(--ease) 900ms forwards;
+}
+
+.intro-role .dot {
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.intro-note {
+  margin: clamp(18px, 3vh, 30px) 0 0;
+  max-width: 46ch;
+  font-size: clamp(12.5px, 1vw, 16px);
+  line-height: 1.7;
+  color: var(--on-room-3);
+  opacity: 0;
+  animation: introFade 900ms var(--ease) 1080ms forwards;
+}
+
+.intro-foot {
+  position: absolute;
+  left: clamp(20px, 6vw, 110px);
+  right: clamp(20px, 6vw, 110px);
+  bottom: clamp(52px, 10vh, 116px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.intro-count {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--on-room-3);
+  font-size: clamp(11px, 0.9vw, 14px);
+  opacity: 0;
+  animation: introFade 800ms var(--ease) 700ms forwards;
+}
+
+.intro-bar {
+  display: block;
+  width: clamp(70px, 12vw, 170px);
+  height: 1px;
+  background: rgba(237, 237, 234, 0.2);
+  overflow: hidden;
+}
+
+.intro-bar i {
+  display: block;
+  height: 100%;
+  background: var(--on-room);
+  transform-origin: left center;
+  transition: transform 320ms linear;
+}
+
+.intro-actions {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 30px);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 700ms var(--ease), transform 700ms var(--ease);
+  pointer-events: none;
+}
+
+.intro.ready .intro-actions {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.intro-enter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0.95em 1.5em;
+  border: 1px solid rgba(237, 237, 234, 0.3);
+  color: var(--on-room);
+  transition: background 320ms var(--ease), color 320ms var(--ease),
+    border-color 320ms var(--ease);
+}
+
+.intro-enter svg {
+  transition: transform 420ms var(--ease);
+}
+
+.intro-enter:hover {
+  background: var(--on-room);
+  border-color: var(--on-room);
+  color: #0a0a0a;
+}
+
+.intro-enter:hover svg {
+  transform: translateX(5px);
+}
+
+/* ============================================================
+   SOUND
+   ============================================================ */
+
+.sound-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.55em 0.85em;
+  border: 1px solid rgba(237, 237, 234, 0.2);
+  color: var(--on-room-3);
+  transition: color 240ms ease, border-color 240ms ease;
+}
+
+.sound-btn:hover {
+  color: var(--on-room);
+  border-color: rgba(237, 237, 234, 0.45);
+}
+
+.sound-btn.on {
+  color: var(--on-room);
+}
+
+.eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+
+.eq i {
+  width: 2px;
+  height: 3px;
+  background: currentColor;
+  transition: height 300ms ease;
+}
+
+.sound-btn.on .eq i {
+  animation: eq 1500ms ease-in-out infinite;
+}
+
+.sound-btn.on .eq i:nth-child(1) {
+  animation-delay: 0ms;
+}
+.sound-btn.on .eq i:nth-child(2) {
+  animation-delay: 220ms;
+}
+.sound-btn.on .eq i:nth-child(3) {
+  animation-delay: 440ms;
+}
+.sound-btn.on .eq i:nth-child(4) {
+  animation-delay: 130ms;
+}
+
+@keyframes eq {
+  0%,
+  100% {
+    height: 3px;
+  }
+  50% {
+    height: 11px;
+  }
+}
+
+@media (max-width: 700px) {
+  .sound-btn .label {
+    display: none;
+  }
+}

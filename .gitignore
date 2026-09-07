@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# build output — Vercel builds this from source
+dist/
+
+# secrets and local environment
+# .env.local holds a live VERCEL_OIDC_TOKEN; never commit it
+.env
+.env.*
+!.env.example
+
+# Vercel project linkage (contains org/project ids)
+.vercel/
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+npm-debug.log*
