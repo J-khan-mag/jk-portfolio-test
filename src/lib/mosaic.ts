@@ -45,6 +45,16 @@ type Entry = {
 const entries = new Set<Entry>();
 let raf = 0;
 let last = 0;
+let held = false;
+
+/** Hold every plate where it is. While the page is assembling in 3D, the
+ *  scroll is locked and nothing can reveal, but the loop would still read
+ *  layout for every plate on every frame — a forced layout per frame, spent
+ *  on nothing. Releasing the hold picks up exactly where it left off. */
+export function holdMosaics(hold: boolean) {
+  held = hold;
+  if (!hold) kick();
+}
 
 function hash(x: number, y: number) {
   let h = x * 374761393 + y * 668265263;
@@ -52,19 +62,43 @@ function hash(x: number, y: number) {
   return ((h ^ (h >> 16)) >>> 0) / 4294967295;
 }
 
-/** how far the plate's top edge sits above the bottom of the window */
-function rise(host: HTMLElement) {
-  return (window.innerHeight || 0) - host.getBoundingClientRect().top;
+/** the host's top edge in viewport space, read from layout alone. Transforms
+ *  on ancestors do not move offsetTop, which is the point: while the page is
+ *  assembling in 3D, a client rect is a perspective projection and can be
+ *  anywhere — including a few billion pixels away. */
+function layoutTop(host: HTMLElement) {
+  let y = 0;
+  let el: HTMLElement | null = host;
+  while (el) {
+    y += el.offsetTop;
+    el = el.offsetParent as HTMLElement | null;
+  }
+  return y - (document.scrollingElement?.scrollTop ?? window.scrollY);
 }
 
+/** how far the plate's top edge sits above the bottom of the window */
+function rise(host: HTMLElement) {
+  const top = host.closest('.scene-root.entering')
+    ? layoutTop(host)
+    : host.getBoundingClientRect().top;
+  return (window.innerHeight || 0) - top;
+}
+
+/* a 6px cell on a plate this big is not a plate — refuse rather than allocate */
+const MAX_CELLS = 4_000_000;
+
 function build(e: Entry) {
-  const r = e.host.getBoundingClientRect();
-  const w = Math.max(1, Math.round(r.width));
-  const h = Math.max(1, Math.round(r.height));
+  // the layout box, not the client rect: a canvas that covers its host should
+  // match what the host is, not how it is currently being projected
+  const w = Math.max(1, e.host.offsetWidth);
+  const h = Math.max(1, e.host.offsetHeight);
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-  e.cols = Math.max(1, Math.ceil(w / CELL));
-  e.rows = Math.max(1, Math.ceil(h / CELL));
+  const cols = Math.max(1, Math.ceil(w / CELL));
+  const rows = Math.max(1, Math.ceil(h / CELL));
+  if (!Number.isFinite(cols * rows) || cols * rows > MAX_CELLS) return;
+  e.cols = cols;
+  e.rows = rows;
   e.height = h;
 
   e.canvas.width = Math.round(w * dpr);
@@ -124,9 +158,13 @@ function paint(e: Entry) {
 }
 
 function frame(now: number) {
+  raf = 0;
+  if (held) {
+    last = 0;
+    return;
+  }
   const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
   last = now;
-  raf = 0;
   let live = false;
 
   entries.forEach((e) => {
@@ -169,6 +207,7 @@ function frame(now: number) {
 }
 
 function kick() {
+  if (held) return;
   if (!raf) {
     last = 0;
     raf = requestAnimationFrame(frame);

@@ -1090,3 +1090,12 @@ a {
 .page :focus-visible {
   outline-color: var(--ink);
 }
+
+/* while the page is still assembling, the grain is a plain wash rather than a
+   blend — blending over a full-screen layer in motion is what stutters */
+.grain-overlay.plain {
+  mix-blend-mode: normal;
+  opacity: 0.3;
+  /* beneath the curtain, which carries its own grain */
+  z-index: 250;
+}

@@ -1118,3 +1118,238 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ============================================================
+   THE ENTRANCE
+   As the curtain lifts, the page is first seen as exploded
+   isometric layers — top bar, navigator, sheet, plate, cards —
+   each at its own depth. The camera drifts, then over 2.4s
+   rights itself and the layers collapse onto one plane, landing
+   on the flat page.
+
+   Everything that moves is a transform or an opacity, transitioned
+   between explicit exploded and flat values. The compositor runs
+   the whole collapse on its own; the main thread recalculates
+   nothing per frame.
+   ============================================================ */
+
+.scene.entering {
+  perspective: 2400px;
+  /* 40% of the viewport, not of the page — the sheet is many screens tall */
+  perspective-origin: 50% 40vh;
+}
+
+.scene-root {
+  /* ease-in-out cubic, as in the reference. The site's --ease is a hard
+     ease-out that spends 60% of a move in its first 300ms; for a camera
+     righting itself over 2.4s that reads as a snap, not a glide. */
+  --glide: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---- the camera ---- */
+
+/* exploded: how the page waits behind the curtain */
+.scene-root.entering {
+  transform-style: preserve-3d;
+  transform-origin: 50vw 50vh;
+  transform: translate(150px, -40px) scale(0.58) rotateX(56deg) rotateZ(-34deg);
+  will-change: transform;
+  /* nothing is clickable until it has landed */
+  pointer-events: none;
+}
+
+/* the drift begins with the click: rotateZ −34° → −26°, scale 0.58 → 0.61 */
+.scene-root.drifting {
+  transform: translate(150px, -40px) scale(0.61) rotateX(56deg) rotateZ(-26deg);
+  transition: transform 1400ms var(--glide);
+}
+
+/* the collapse: the same four functions, all to rest, so each interpolates
+   on its own — the rotation unwinds while the scale grows */
+.scene-root.collapsing {
+  transform: translate(0px, 0px) scale(1) rotateX(0deg) rotateZ(0deg);
+  transition: transform 2400ms var(--glide);
+}
+
+/* the chain down to every layer has to carry 3D */
+.scene-root.entering .elev,
+.scene-root.entering .elev-main,
+.scene-root.entering .elev-hero,
+.scene-root.entering .hero-plate-wrap,
+.scene-root.entering .floor,
+.scene-root.entering .grid {
+  transform-style: preserve-3d;
+}
+
+.scene-root.entering .elev {
+  position: relative;
+}
+
+/* fixed elements would pin themselves to the transformed root; freeze them
+   in place instead — the page is held at scroll 0 the whole time */
+.scene-root.entering .elev-topbar,
+.scene-root.entering .elev-progress {
+  position: absolute;
+}
+
+.scene-root.entering .cursor-tag {
+  display: none;
+}
+
+/* ---- the layers, at their depths ---- */
+
+.scene-root.entering .elev-topbar {
+  transform: translateZ(230px);
+}
+
+.scene-root.entering .elev-nav {
+  position: relative;
+  transform: translateZ(110px);
+}
+
+.scene-root.entering .elev-main {
+  position: relative;
+  /* z = 0, but a transform all the same, so the sheet is its own layer */
+  transform: translateZ(0);
+}
+
+/* the plate's depth rides on a wrapper: the plate itself clips its overflow,
+   which would cut its own shadow and hairline away */
+.scene-root.entering .hero-plate-3d {
+  position: relative;
+  transform: translateZ(170px);
+}
+
+.scene-root.entering .hero-plate {
+  /* the plate is part of the picture — it does not wait to be wiped in */
+  clip-path: none;
+}
+
+/* Only the cards in shot — hero, L4, L3 — carry depth, a skin and a
+   transition. The forty-odd below are hidden anyway; giving them layers and
+   transitions would cost the compositor for nothing. Cards are .rise too, so
+   this has to outrank the reset below. */
+.scene-root.entering .elev-main > :nth-child(-n + 3) .grid > .card2 {
+  position: relative;
+  transform: translateZ(calc(60px + 25px * var(--col, 0)));
+}
+
+.scene-root.entering :is(.elev-topbar, .elev-nav, .elev-main, .hero-plate-3d, .elev-main > :nth-child(-n + 3) .grid > .card2) {
+  will-change: transform;
+}
+
+/* every layer falls to the plane along with the camera */
+.scene-root.collapsing :is(.elev-topbar, .elev-nav, .hero-plate-3d, .elev-main > :nth-child(-n + 3) .grid > .card2) {
+  transform: translateZ(0);
+  transition: transform 2400ms var(--glide);
+}
+
+/* Each layer wears its exploded skin (surface, hairline, shadow) on a
+   pseudo-element that only ever changes opacity. A shadow that grows every
+   frame repaints the whole layer every frame; fading a pre-painted one is
+   free on the compositor. */
+.scene-root.entering :is(.elev-topbar, .elev-nav, .elev-main, .hero-plate-3d, .elev-main > :nth-child(-n + 3) .grid > .card2)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #141413;
+  outline: 1px solid rgba(237, 237, 234, 0.2);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+  opacity: 1;
+  will-change: opacity;
+  pointer-events: none;
+}
+
+.scene-root.collapsing :is(.elev-topbar, .elev-nav, .elev-main, .hero-plate-3d, .elev-main > :nth-child(-n + 3) .grid > .card2)::before {
+  opacity: 0;
+  transition: opacity 2400ms var(--glide);
+}
+
+/* the navigator sits on the dark side of the sheet */
+.scene-root.entering .elev-nav::before {
+  background: #0a0a0a;
+}
+
+/* the sheet is many screens tall, but only its top is ever in shot; the
+   skin stops where the reference page did */
+.scene-root.entering .elev-main::before {
+  inset: 0 0 auto 0;
+  height: 320vh;
+}
+
+/* ---- the page is a complete object while it assembles ---- */
+
+/* everything that normally waits for the scroll is simply there */
+.scene-root.entering .rise {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.scene-root.entering .lines span i {
+  transform: none;
+}
+
+.scene-root.entering .hero-plate-cap {
+  opacity: 1;
+}
+
+/* the plates show their pictures plainly while in shot; the tiles take over
+   once the page is flat and the reader starts to scroll */
+.scene-root.entering .mosaic {
+  visibility: hidden;
+}
+
+/* only the top of the sheet is ever in shot — hero and the first two
+   floors — so the lower floors need not paint while it moves */
+.scene-root.entering .elev-main > :nth-child(n + 4) {
+  visibility: hidden;
+}
+
+/* ---- landed through the entrance ----
+   Nothing that was already visible may vanish to re-announce itself;
+   the page has arrived. Only the figures count up. */
+
+.scene-root.assembled .lines span i {
+  animation: none;
+  transform: none;
+}
+
+.scene-root.assembled .hero-plate {
+  animation: none;
+  clip-path: none;
+}
+
+.scene-root.assembled .hero-plate-cap {
+  animation: none;
+  opacity: 1;
+}
+
+.scene-root.assembled .elev-hero .rise {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- the grain hands over: the plain wash of the entrance fades out as
+        the blended grain of the page fades in, so nothing flips ---- */
+
+@keyframes grainIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes grainOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.grain-overlay.arrive {
+  animation: grainIn 800ms ease both;
+}
+
+.grain-overlay.plain.leave {
+  animation: grainOut 800ms ease both;
+}

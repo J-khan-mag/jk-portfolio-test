@@ -4,14 +4,24 @@ import { useEffect, type RefObject } from 'react';
    the panel, and a lightbox stacked on the panel can all hold it at once */
 let locks = 0;
 
+/* Hiding the scrollbar makes the page 15px wider on a classic-scrollbar
+   system, so everything shifts sideways when the hold is released — at the
+   very moment the entrance lands, or when a panel closes. The gutter's width
+   is measured and given back as padding for as long as the hold lasts. */
 export function lockScroll() {
   locks += 1;
+  if (locks > 1) return;
+  const gutter = window.innerWidth - document.documentElement.clientWidth;
+  if (gutter > 0) document.body.style.paddingRight = `${gutter}px`;
   document.body.style.overflow = 'hidden';
 }
 
 export function unlockScroll() {
   locks = Math.max(0, locks - 1);
-  if (locks === 0) document.body.style.overflow = '';
+  if (locks === 0) {
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  }
 }
 
 const FOCUSABLE =

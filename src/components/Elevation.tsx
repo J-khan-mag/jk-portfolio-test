@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import Figure from './Figure';
 import ProjectPanel from './ProjectPanel';
 import BuildingDiagram from './BuildingDiagram';
@@ -6,20 +6,27 @@ import Basement from './Basement';
 import Practice from './Practice';
 import { AWARDS } from '../data/profile';
 import Mosaic from './Mosaic';
+import { holdMosaics } from '../lib/mosaic';
 import { LEVELS, PROJECTS, type LevelKey, type Project } from '../data/projects';
 import '../elevation.css';
 import '../basement.css';
 
 type Entry = { p: Project; n: number };
 
+/** where the page is in its entrance: exploded isometric layers, falling, or flat */
+export type Stage = 'exploded' | 'drifting' | 'collapsing' | 'flat';
+
 const HERO = PROJECTS[0].images[0];
 
-/** A figure that counts up once, the first time it is seen. */
-function Tally({ to }: { to: number }) {
+/** A figure that counts up once, the first time it is seen — and not before
+ *  it is armed, so the count happens as the page lands rather than behind
+ *  the curtain. */
+function Tally({ to, armed }: { to: number; armed: boolean }) {
   const [v, setV] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    if (!armed) return;
     const el = ref.current;
     if (!el) return;
     let raf = 0;
@@ -48,7 +55,7 @@ function Tally({ to }: { to: number }) {
       io.disconnect();
       cancelAnimationFrame(raf);
     };
-  }, [to]);
+  }, [to, armed]);
 
   return (
     <span className="num" ref={ref}>
@@ -102,7 +109,7 @@ const FloorGrid = memo(function FloorGrid({
                     <button
                       className="card2 rise"
                       key={p.id}
-                      style={{ transitionDelay: `${(i % 3) * 70}ms` }}
+                      style={{ transitionDelay: `${(i % 3) * 70}ms`, '--col': i % 3 } as CSSProperties}
                       onClick={() => openAt(n)}
                       onMouseEnter={() => onCardEnter(p.id)}
                       onMouseLeave={() => onCardLeave(p.id)}
@@ -170,13 +177,25 @@ export default function Elevation({
   muted,
   onToggleSound,
   entered,
+  stage,
+  assembled,
   onHome,
+  onSettled,
 }: {
   muted: boolean;
   onToggleSound: () => void;
   entered: boolean;
+  stage: Stage;
+  /** the flat page was reached through the entrance, not by skipping it */
+  assembled: boolean;
   onHome: () => void;
+  /** the collapse transition has finished */
+  onSettled: () => void;
 }) {
+  // the hero animations fire once the page is flat — after the collapse for a
+  // fresh visitor, straight away for a returning one
+  const live = entered && stage === 'flat';
+  const entering = stage !== 'flat';
   const [active, setActive] = useState<LevelKey>(LEVELS[0].key);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [hovering, setHovering] = useState(false);
@@ -184,6 +203,27 @@ export default function Elevation({
   const [through, setThrough] = useState<Record<string, number>>({});
 
   const groupRefs = useRef(new Map<LevelKey, HTMLElement>());
+  const sceneRootRef = useRef<HTMLDivElement>(null);
+
+  /* while the page assembles, every other loop stands still */
+  useEffect(() => {
+    holdMosaics(entering);
+    return () => holdMosaics(false);
+  }, [entering]);
+
+  /* the page is flat when the camera says so, not when a timer guesses */
+  useEffect(() => {
+    if (stage !== 'collapsing') return;
+    const root = sceneRootRef.current;
+    if (!root) return;
+    const onEnd = (e: TransitionEvent) => {
+      // the drift is 1.4s and may end a hair after the collapse begins; only
+      // the collapse's own 2.4s transform transition lands the page
+      if (e.target === root && e.propertyName === 'transform' && e.elapsedTime > 2) onSettled();
+    };
+    root.addEventListener('transitionend', onEnd);
+    return () => root.removeEventListener('transitionend', onEnd);
+  }, [stage, onSettled]);
   const progressRef = useRef<HTMLSpanElement>(null);
   const rafRef = useRef(0);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -203,6 +243,14 @@ export default function Elevation({
   useEffect(() => {
     const read = () => {
       rafRef.current = 0;
+      // while the page is assembling, the rects are in 3D and mean nothing:
+      // hold the drawing on the top level, and keep the plate's parallax off
+      // it — an inline transform would overwrite the depth the CSS gives it
+      if (!live) {
+        if (heroPlateRef.current) heroPlateRef.current.style.transform = '';
+        setActive(LEVELS[0].key);
+        return;
+      }
       const doc = document.documentElement;
       const max = Math.max(doc.scrollHeight - window.innerHeight, 1);
       const p = Math.min(Math.max(window.scrollY / max, 0), 1);
@@ -253,7 +301,7 @@ export default function Elevation({
       window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [live]);
 
   /* ── reveal cards as they arrive ── */
   useEffect(() => {
@@ -283,6 +331,9 @@ export default function Elevation({
      towards the pointer, so entering a new card never makes it jump across
      the screen from wherever it was left. */
   useEffect(() => {
+    // the tag is hidden until the page has landed; no need to chase the
+    // pointer before then
+    if (!live) return;
     if (!window.matchMedia('(hover: hover)').matches) return;
     let raf = 0;
     const onMove = (e: MouseEvent) => {
@@ -310,7 +361,7 @@ export default function Elevation({
       window.removeEventListener('mousemove', onMove);
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [live]);
 
   const goToLevel = useCallback((k: LevelKey) => {
     const el = groupRefs.current.get(k);
@@ -351,8 +402,23 @@ export default function Elevation({
 
   const openEntry = openIdx === null ? null : entries[openIdx - 1];
 
+  const rootClass = [
+    'scene-root',
+    entering && 'entering',
+    // the drift runs from the click and holds through the collapse
+    (stage === 'drifting' || stage === 'collapsing') && 'drifting',
+    stage === 'collapsing' && 'collapsing',
+    !entering && 'flat',
+    assembled && 'assembled',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className={`elev${entered ? " live" : ""}`}>
+    <>
+      <div className={`scene${entering ? ' entering' : ''}`}>
+        <div className={rootClass} ref={sceneRootRef}>
+    <div className={`elev${live ? ' live' : ''}`}>
       <div className="elev-progress" aria-hidden>
         <span ref={progressRef} />
       </div>
@@ -425,12 +491,13 @@ export default function Elevation({
               ].map(([k, v]) => (
                 <div key={k as string}>
                   <span className="label">{k}</span>
-                  <Tally to={v as number} />
+                  <Tally to={v as number} armed={live} />
                 </div>
               ))}
             </div>
           </div>
           <div className="hero-plate-wrap">
+            <div className="hero-plate-3d">
             <div className="hero-plate" ref={heroPlateRef}>
               <Figure
                 img={HERO}
@@ -439,6 +506,7 @@ export default function Elevation({
                 className="fill"
                 priority
               />
+            </div>
             </div>
             <div className="hero-plate-cap label">Keturah Resort · Dubai Creek · On site</div>
           </div>
@@ -487,7 +555,11 @@ export default function Elevation({
           </p>
         </footer>
       </main>
+    </div>
+        </div>
+      </div>
 
+      {/* fixed, so it lives outside the transformed root */}
       {openEntry && (
         <ProjectPanel
           project={openEntry.p}
@@ -498,6 +570,6 @@ export default function Elevation({
           onClose={() => setOpenIdx(null)}
         />
       )}
-    </div>
+    </>
   );
 }
